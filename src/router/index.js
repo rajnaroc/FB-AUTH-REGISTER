@@ -1,33 +1,35 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
-import Perfil from '@/views/PerfilView.vue'
-import Register from '@/views/RegisterView.vue'
+import { createRouter, createWebHistory } from 'vue-router'
 import { auth } from '@/db/firebase'
 const routes = [
   {
     path: '/',
     name: 'register',
-    component: Register
+    component: () => import('../views/RegisterView.vue')
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('../views/LoginView.vue')
   },
   {
     path: '/perfil',
     name: 'perfil',
-    component: Perfil,
-    props: (route) => ({userName: route.params.userName}), //pasamos el nombre del usuario
-    meta: { requiresAuth: true}, // protege la ruta 
+    component: () => import('../views/PerfilView.vue'),
+    meta: {requiredAuth: true}
   }
 ]
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(process.env.BASE_URL),
   routes
 })
-router.beforeEach((to, from, next) => {
+
+router.beforeEach( (to, from, next) => {
   const currentUser = auth.currentUser
-  if (to.matched.some((record) => record.meta.requiresAuth) && !currentUser){
-      next({name: 'register'});
+  if (to.matched.some(record => record.meta.requiredAuth) && !currentUser){
+    next({name: 'register'})
+  }else{
+    next()
   }
-  else{
-    next();
-  }
-  })
+})
 export default router
