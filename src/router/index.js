@@ -25,11 +25,20 @@ const router = createRouter({
 })
 
 router.beforeEach( (to, from, next) => {
-  const currentUser = auth.currentUser
-  if (to.matched.some(record => record.meta.requiredAuth) && !currentUser){
-    next({name: 'register'})
-  }else{
-    next()
+  const requiredAuth = to.matched.some(record => record.meta.requiredAuth)
+  if (requiredAuth){
+    const unsubscribe = auth.onAuthStateChanged( (user) => {
+      if (user) {
+        next() // esto permite la navegacion
+      }
+      else{
+        next({name: 'login'})
+      }
+      unsubscribe()
+    })
   }
-})
+  else{
+    next() // si la ruta no lo requiere autencacion, permite la navegacion
+  }
+  })
 export default router
